@@ -10,7 +10,10 @@ client = MongoClient('mongodb://localhost:27017/')
 db = client['events_db']
 events_collection = db['events']
 
-
+# Helper function to convert ObjectId to string
+def serialize_object_id(event):
+    event['_id'] = str(event['_id'])
+    return event
 
 # Create Event
 @app.route('/events', methods=['POST'])
@@ -57,7 +60,7 @@ def get_event(event_id):
         if not event:
             return jsonify({'error': 'Event not found'}), 404
             
-        return str(event)
+        return jsonify(serialize_object_id(event))
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500   
