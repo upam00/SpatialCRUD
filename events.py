@@ -70,7 +70,7 @@ def get_event(event_id):
         return jsonify({'error': str(e)}), 500   
 
 # Get Events Near Location
-@app.route('/events/near', methods=['GET'])
+@app.route('/events/near/', methods=['GET'])
 def get_nearby_events():
     try:
         longitude = float(request.args.get('longitude'))
@@ -135,32 +135,7 @@ def update_event(event_id):
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-    
-# Get Events Near Location
-@app.route('/events/near', methods=['GET'])
-def get_nearby_events():
-    try:
-        longitude = float(request.args.get('longitude'))
-        latitude = float(request.args.get('latitude'))
-        max_distance = float(request.args.get('distance', 5000))  # Default 5km
 
-        query = {
-            'location': {
-                '$near': {
-                    '$geometry': {
-                        'type': 'Point',
-                        'coordinates': [longitude, latitude]
-                    },
-                    '$maxDistance': max_distance
-                }
-            }
-        }
-
-        events = list(events_collection.find(query))
-        return jsonify([serialize_object_id(event) for event in events])
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -60,5 +60,57 @@ def create_state():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# Read State by ID
+@app.route('/states/<state_id>', methods=['GET'])
+def get_state(state_id):
+    try:
+        state = states_collection.find_one({'_id': ObjectId(state_id)})
+        if not state:
+            return jsonify({'error': 'State not found'}), 404
+            
+        return jsonify(serialize_object_id(state))
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# Update State
+@app.route('/states/<state_id>', methods=['PUT'])
+def update_state(state_id):
+    try:
+        data = request.get_json()
+        update_data = {}
+        
+        if 'name' in data:
+            update_data['name'] = data['name']
+            
+        if 'population_density' in data:
+            update_data['population_density'] = float(data['population_density'])
+            
+        if 'coordinates' in data:
+            if not validate_polygon(data['coordinates']):
+                return jsonify({'error': 'Invalid polygon coordinates'}), 400
+            update_data['boundary'] = {
+                'type': 'Polygon',
+                'coordinates': [data['coordinates']]
+            }
+
+        if not update_data:
+            return jsonify({'error': 'No valid fields to update'}), 400
+
+        result = states_collection.update_one(
+            {'_id': ObjectId(state_id)},
+            {'$set': update_data}
+        )
+
+        if result.matched_count == 0:
+            return jsonify({'error': 'State not found'}), 404
+
+        updated_state = states_collection.find_one({'_id': ObjectId(state_id)})
+        return jsonify(serialize_object_id(updated_state))
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=True)
