@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from pymongo import MongoClient
 from datetime import datetime
+from bson import ObjectId
 
 app = Flask(__name__)
 
@@ -8,6 +9,7 @@ app = Flask(__name__)
 client = MongoClient('mongodb://localhost:27017/')
 db = client['events_db']
 events_collection = db['events']
+
 
 
 # Create Event
@@ -47,7 +49,18 @@ def create_event():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-   
+# Read Event by ID
+@app.route('/events/<event_id>', methods=['GET'])
+def get_event(event_id):
+    try:
+        event = events_collection.find_one({'_id': ObjectId(event_id)})
+        if not event:
+            return jsonify({'error': 'Event not found'}), 404
+            
+        return str(event)
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500   
 
 
 if __name__ == '__main__':
