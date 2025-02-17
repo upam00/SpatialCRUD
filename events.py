@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from pymongo import MongoClient
+from pymongo import MongoClient, GEOSPHERE
 from datetime import datetime
 from bson import ObjectId
 
@@ -9,6 +9,10 @@ app = Flask(__name__)
 client = MongoClient('mongodb://localhost:27017/')
 db = client['events_db']
 events_collection = db['events']
+
+# Adding geospatial index
+events_collection.create_index([("location", GEOSPHERE)])
+
 
 # Helper function to convert ObjectId to string
 def serialize_object_id(event):
