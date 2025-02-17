@@ -15,7 +15,7 @@ def serialize_object_id(state):
 
 # Validate polygon coordinates
 def validate_polygon(coordinates):
-    if not isinstance(coordinates, list) or len(coordinates) != 16:
+    if not isinstance(coordinates, list) or len(coordinates) != 8:
         return False
     for point in coordinates:
         if not isinstance(point, list) or len(point) != 2:
@@ -108,6 +108,31 @@ def update_state(state_id):
 
         updated_state = states_collection.find_one({'_id': ObjectId(state_id)})
         return jsonify(serialize_object_id(updated_state))
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# Route to Find States Containing Point
+@app.route('/states/contains', methods=['GET'])
+def find_states_containing_point():
+    try:
+        longitude = float(request.args.get('longitude'))
+        latitude = float(request.args.get('latitude'))
+
+        query = {
+            'boundary': {
+                '$geoIntersects': {
+                    '$geometry': {
+                        'type': 'Point',
+                        'coordinates': [longitude, latitude]
+                    }
+                }
+            }
+        }
+
+        states = list(states_collection.find(query))
+        return jsonify([serialize_object_id(state) for state in states])
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500

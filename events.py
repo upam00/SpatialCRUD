@@ -43,7 +43,7 @@ def create_event():
             },
             'event_name': data['event_name'],
             'artists': data['artists'],
-            'date': datetime.strptime(data['date'], '%Y-%m-%d').date(),
+            'date':  datetime.fromisoformat(data['date']) ,
             'start_time': data['start_time'],
             'end_time': data['end_time'],
             'price': float(data['price'])
@@ -70,7 +70,7 @@ def get_event(event_id):
         return jsonify({'error': str(e)}), 500   
 
 # Get Events Near Location
-@app.route('/events/near/', methods=['GET'])
+@app.route('/events/near', methods=['GET'])
 def get_nearby_events():
     try:
         longitude = float(request.args.get('longitude'))
