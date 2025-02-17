@@ -29,6 +29,36 @@ def validate_polygon(coordinates):
         return False
     return True
 
+# Create State 
+@app.route('/states', methods=['POST'])
+def create_state():
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        if not all(key in data for key in ['name', 'population_density', 'coordinates']):
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        # Validate polygon coordinates
+        if not validate_polygon(data['coordinates']):
+            return jsonify({'error': 'Invalid polygon coordinates'}), 400
+
+        state = {
+            'name': data['name'],
+            'population_density': float(data['population_density']),
+            'boundary': {
+                'type': 'Polygon',
+                'coordinates': [data['coordinates']] 
+            }
+        }
+
+        result = states_collection.insert_one(state)
+        state['_id'] = str(result.inserted_id)
+        
+        return jsonify(state), 201
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
